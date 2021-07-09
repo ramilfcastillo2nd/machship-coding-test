@@ -19,29 +19,32 @@ namespace Infrastructure.Services
             Url = _config["Github:Url"].ToString();
         }
 
-        public async Task<List<GithubUserInfo>> GetUsersInfo(List<GithubUser> users)
+        public async Task<GithubUserInfo> GetUserInfo(string userName)
         {
-            var listUserInfos = new List<GithubUserInfo>();
-            foreach (var user in users)
+            try
             {
                 using (var client = new HttpClient())
                 {
-                    var url = $"{Url}/users/{user.login}";
+                    var url = $"{Url}/users/{userName}";
                     client.DefaultRequestHeaders.Add("User-Agent", "request");
                     var response = await client.GetAsync(url, HttpCompletionOption.ResponseContentRead);
-                    response.EnsureSuccessStatusCode();
                     var content = await response.Content.ReadAsStringAsync();
 
                     if (response.IsSuccessStatusCode)
                     {
                         var result = JsonConvert.DeserializeObject<GithubUserInfo>(content);
-                        listUserInfos.Add(result);
+                        return result;
+                    }
+                    else
+                    {
+                        return null;
                     }
                 }
             }
-
-            //Do Sorting          
-            return listUserInfos.OrderBy(s => s.name).ToList();
+            catch
+            {
+                return null;
+            }
         }
 
         public async Task<List<GithubUser>> GetUsers()

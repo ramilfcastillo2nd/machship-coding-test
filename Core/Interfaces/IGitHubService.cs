@@ -7,6 +7,6 @@ namespace Core.Interfaces
     public interface IGitHubService
     {
         Task<List<GithubUser>> GetUsers();
-        Task<List<GithubUserInfo>> GetUsersInfo(List<GithubUser> users);
+        Task<GithubUserInfo> GetUserInfo(string userName);
     }
 }

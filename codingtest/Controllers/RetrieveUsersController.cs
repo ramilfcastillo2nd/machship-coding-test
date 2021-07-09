@@ -5,6 +5,7 @@ using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace codingtest.Controllers
@@ -26,17 +27,35 @@ namespace codingtest.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> RetrieveUsers()
+        public async Task<IActionResult> RetrieveUsers([FromQuery]string[] usernames)
         {
             try
             {
-                var getUsersResponse = await _gitHubService.GetUsers();
-                var getUsersInfoResponse = await _gitHubService.GetUsersInfo(getUsersResponse);
-                var usersMapped = _mapper.Map<List<GithubUserInfo>, List<RetrieveUsersResponse>>(getUsersInfoResponse);
+                var lstUserInfo = new List<GithubUserInfo>();
+
+                //Removed duplicate entry of usernames before calling github 
+                foreach (var username in usernames.Distinct())
+                {
+                    var getUserInfoResponse = await _gitHubService.GetUserInfo(username);
+                    if(getUserInfoResponse!=null)
+                    {
+                        lstUserInfo.Add(getUserInfoResponse);
+                    }                 
+                }
+
+                var usersMapped = _mapper.Map<List<GithubUserInfo>, List<RetrieveUsersResponse>>(lstUserInfo);
+
+                //Add average number of followers and Sort
+                usersMapped = usersMapped.Select(s =>
+                {
+                    s.AverageNoOfFollowersPerRepo = s.NoOfFollowers / s.NoOfPublicRepo;
+                    return s;
+                }).OrderBy(s => s.name).ToList();
+
                 return Ok(usersMapped);
             }
             catch (Exception x)
-            {
+            {   
                 return BadRequest(x.Message);
             }
         }
