@@ -3,6 +3,7 @@ using Core.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -39,11 +40,8 @@ namespace Infrastructure.Services
                 }
             }
 
-
-            //Do Sorting
-            
-
-            return listUserInfos;
+            //Do Sorting          
+            return listUserInfos.OrderBy(s => s.name).ToList();
         }
 
         public async Task<List<GithubUser>> GetUsers()
